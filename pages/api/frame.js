@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 const shopItems = {
   toy: { cost: 5, effect: { happiness: 2 } },
-  treat: { cost: 3, effect: { hunger: -2 } }
+  treat: { cost: 3, effect: { hunger: -2 } },
 };
 
 export default async function handler(req, res) {
@@ -21,10 +22,6 @@ export default async function handler(req, res) {
     .select('*')
     .eq('fid', fid)
     .single();
-
-  if (error && error.code !== 'PGRST116') {
-    return res.status(500).json({ error: 'Database error' });
-  }
 
   if (!pet) {
     pet = { fid, hunger: 5, happiness: 5, coins: 0 };
@@ -43,8 +40,10 @@ export default async function handler(req, res) {
       pet.coins -= selectedItem.cost;
       pet.hunger = Math.max(0, pet.hunger + (selectedItem.effect.hunger || 
 0));
-      pet.happiness = Math.min(10, pet.happiness + 
-(selectedItem.effect.happiness || 0));
+      pet.happiness = Math.min(
+        10,
+        pet.happiness + (selectedItem.effect.happiness || 0)
+      );
     } else {
       return res.status(400).json({ error: 'Not enough coins' });
     }
@@ -55,7 +54,7 @@ export default async function handler(req, res) {
   res.setHeader('Content-Type', 'text/html');
   res.send(`
     <!DOCTYPE html>
-    <html lang="en">
+    <html>
     <head>
       <meta property="og:title" content="Your Virtual Pet" />
       <meta property="og:image" content="https://example.com/pet.png" />
