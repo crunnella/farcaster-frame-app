@@ -4,9 +4,6 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const NOTIFICATION_THRESHOLD = 2;
-const NOTIFICATION_COOLDOWN = 3600000;
-
 const shopItems = {
   toy: { cost: 5, effect: { happiness: 2 } },
   treat: { cost: 3, effect: { hunger: -2 } }
@@ -30,7 +27,7 @@ export default async function handler(req, res) {
   }
 
   if (!pet) {
-    pet = { fid, hunger: 5, happiness: 5, coins: 0, lastNotified: 0 };
+    pet = { fid, hunger: 5, happiness: 5, coins: 0 };
     await supabase.from('pets').insert([pet]);
   }
 
@@ -53,17 +50,6 @@ export default async function handler(req, res) {
     }
   }
 
-  const now = Date.now();
-  if (
-    (pet.hunger <= NOTIFICATION_THRESHOLD || pet.happiness <= 
-NOTIFICATION_THRESHOLD) &&
-    (now - pet.lastNotified > NOTIFICATION_COOLDOWN)
-  ) {
-    await sendNotification(fid, 'Your pet needs attention! 🐾 Come back to 
-feed and play with it.');
-    pet.lastNotified = now;
-  }
-
   await supabase.from('pets').update(pet).eq('fid', fid);
 
   res.setHeader('Content-Type', 'text/html');
@@ -79,22 +65,22 @@ Happiness: ${pet.happiness} | Coins: ${pet.coins}" />
       <meta property="fc:frame:button:1" content="Feed" />
       <meta property="fc:frame:button:1:action" content="post_redirect" />
       <meta property="fc:frame:button:1:target" 
-content="https://farcaster-frame-app-nu.vercel.app/api/frame?fid=${fid}&action=feed" 
+content="https://farcaster-frame-app.vercel.app/api/frame?fid=${fid}&action=feed" 
 />
       <meta property="fc:frame:button:2" content="Play" />
       <meta property="fc:frame:button:2:action" content="post_redirect" />
       <meta property="fc:frame:button:2:target" 
-content="https://farcaster-frame-app-nu.vercel.app/api/frame?fid=${fid}&action=play" 
+content="https://farcaster-frame-app.vercel.app/api/frame?fid=${fid}&action=play" 
 />
       <meta property="fc:frame:button:3" content="Buy Toy (5 coins)" />
       <meta property="fc:frame:button:3:action" content="post_redirect" />
       <meta property="fc:frame:button:3:target" 
-content="https://farcaster-frame-app-nu.vercel.app/api/frame?fid=${fid}&action=buy&item=toy" 
+content="https://farcaster-frame-app.vercel.app/api/frame?fid=${fid}&action=buy&item=toy" 
 />
       <meta property="fc:frame:button:4" content="Buy Treat (3 coins)" />
       <meta property="fc:frame:button:4:action" content="post_redirect" />
       <meta property="fc:frame:button:4:target" 
-content="https://farcaster-frame-app-nu.vercel.app/api/frame?fid=${fid}&action=buy&item=treat" 
+content="https://farcaster-frame-app.vercel.app/api/frame?fid=${fid}&action=buy&item=treat" 
 />
     </head>
     <body>
@@ -102,9 +88,5 @@ content="https://farcaster-frame-app-nu.vercel.app/api/frame?fid=${fid}&action=b
     </body>
     </html>
   `);
-}
-
-async function sendNotification(fid, message) {
-  console.log(`Notify ${fid}: ${message}`);
 }
 
